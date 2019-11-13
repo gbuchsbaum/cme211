@@ -1,0 +1,16 @@
+CXX := g++
+CXXFLAGS := -std=c++11 -O3 -Wall -Wextra -Wconversion -Wpedantic
+
+TARGET := main
+OBJS := main.o Item.o Inventory.o
+INCS := main.cpp Item.hpp Item.cpp Inventory.hpp
+
+$(TARGET): $(OBJS)
+	$(CXX) -o $(TARGET) $(OBJS)
+
+%.o: %.cpp $(INCS)
+	$(CXX) -c -o $@ $< $(CXXFLAGS)
+
+.PHONY: clean
+clean:
+	$(RM) $(OBJS) $(TARGET)

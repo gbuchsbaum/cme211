@@ -1,0 +1,91 @@
+// Import necessary modules and header files
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+#include "CGSolver.hpp"
+#include "heat.hpp"
+#include "matvecops.hpp"
+#include "sparse.hpp"
+
+/* Function that implements the Conjugate Gradient method to solve systems of
+ * equations represented in the Ax = b form, where A is a matrix and x and b
+ * are vectors. For this function, A is entered in the CSR format. X is an
+ * initial guess, which is changed to the solution determined by this function.
+ */
+int CGSolver(const SparseMatrix        &A,
+	     const std::vector<double> &b,
+	     std::vector<double>       &x,
+	     const double              tol,
+	     const HeatEquation2D      &H) {
+  /* The values of many results throughout the calculation change after each
+   * iteration. However, since only the last iteration is needed for the
+   * solution, there is no need to store the previous values, which would
+   * require inefficient storage in a vector of vectors. Thus, only the
+   * current and next values are stored, and the next value replaces the
+   * current value at the end of the iteration. To avoid complications, the
+   * initial values use the same storage system as subsequent values (e.g. un
+   * rather than u0).
+   */
+  // Store the guessed x as un for the first iteration.
+  std::vector<double> un = x;
+  // Calculate r0. This happens in two steps, as trying it in one step causes
+  // issues with data types for functions.
+  std::vector<double> inter = A.MulVec(un);
+  std::vector<double> rn = subtract(b, inter);
+  // Calculate the L2 norm of r0. This is the only value that remains constant.
+  const double L2normr0 = L2norm(rn);
+  
+  std::vector<double> pn = rn;
+  int nitermax = 10 * (int)x.size();
+  int niter = 0;
+  bool metTol = false;
+  while (niter < nitermax) {
+    // Every 10 iterations, save the current status.
+    if (niter % 10 == 0) {
+      H.SaveSolution(un, niter);
+    }
+    // increment niter
+    niter++;
+    // Calculate the value of alpha. Again, all matrix calculations are done
+    // separately to avoid issues with functions receiving the wrong types.
+    double rnrn = vecMultiply(rn, rn);
+    std::vector<double> Apn = A.MulVec(pn);
+    double pnApn = vecMultiply(pn, Apn);
+    double alpha = rnrn / pnApn;
+    // Calculate u(n+1)
+    inter = scalarMultiply(pn, alpha);
+    un = add(un, inter);
+    // Calculate r(n+1)
+    inter = scalarMultiply(Apn, alpha);
+    rn = subtract(rn, inter);
+    // Calculate the L2 norm of r(n+1)
+    double L2normrn1 = L2norm(rn);
+
+    // If the error is within tolerance, exit the loop.
+    if ((L2normrn1 / L2normr0) < tol) {
+      metTol = true;
+      break;
+    }
+    
+    // If the error is not within the tolerance, calculate beta and p(n+1)
+    double rn1rn1 = vecMultiply(rn,rn);
+    double beta = rn1rn1 / rnrn;
+    inter = scalarMultiply(pn, beta);
+    pn = add(rn, inter);
+
+  }
+
+  // If the desired tolerance was not met, report this and exit.
+  if (not metTol) {
+    std::stringstream s;
+    s << __func__ << ": Solution not reached in " << niter << " iterations";
+    throw std::runtime_error(s.str());
+  }
+  // Record the final value of u as the solution x.
+  x = un;
+  // Return the number of iterations needed to reach the desired tolerance.
+  return niter;
+}

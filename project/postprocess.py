@@ -1,0 +1,73 @@
+# Import necessary modules
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+import sys
+
+# If there are not enough arguments, print a usage message.
+if len(sys.argv) < 3:
+    print('Usage:')
+    print('  python3 postprocess.py <input file> <solution file>')
+    sys.exit(0)
+
+# Identify the file names.
+inputFile = sys.argv[1]
+solutionFile = sys.argv[2]
+
+if not os.path.exists(inputFile):
+    raise RuntimeError("Input file does not exist")
+if not os.path.exists(solutionFile):
+                raise RuntimeError("Solution file does not exist")
+
+# Read the dimensions and cell size.
+with open(inputFile, 'r') as fi:
+    setup = (fi.readline()).split()
+
+try:
+    length = float(setup[0])
+    width = float(setup[1])
+    h = float(setup[2])
+except:
+    raise RuntimeError("Input file unreadable")
+
+# Read the solution file data and find its dimensions.
+try:
+    solution = np.loadtxt(solutionFile, dtype=np.float64)
+except:
+    raise RuntimeError("Solution file unreadable")
+nx = solution.shape[0]
+ny = solution.shape[1]
+
+# Set up arrays to produce locations for color plot.
+X = np.arange(0, length+h, h)
+Y = np.arange(0, width+h, h)
+
+# Find average temperature, excluding the last column (as it is a repeat)
+avg = np.mean(solution[:,:-1])
+# Determine the curve of the average temperature.
+avgCurve = np.empty(X.shape[0])
+for i in range(X.shape[0]):
+    avgCurve[i] = np.interp(avg, solution[:,i], Y)
+
+# Print requested output.
+print("Input file processed: {}".format(inputFile))
+print("Mean Temperature: {:.5f}".format(avg))
+
+# Plot the results in a color plot
+plt.figure()
+plt.pcolor(X, Y, solution, cmap='jet')
+plt.colorbar()
+# Set the dimensions of the plot
+plt.xlim(0,length)
+plt.ylim((width-length)/2,(length-width)/2 + width)
+# Plot the average temperature curve
+plt.plot(X,avgCurve, color='black')
+# Add axes labels
+plt.ylabel('y')
+plt.xlabel('x')
+# Save the plot
+plotName = solutionFile.split('.')[0] + '.png'
+plt.savefig(plotName)
+plt.show()

@@ -1,0 +1,33 @@
+#ifndef HEAT_HPP
+#define HEAT_HPP
+
+#include <string>
+#include <vector>
+
+#include "sparse.hpp"
+
+class HeatEquation2D
+{
+private:
+  SparseMatrix A;
+  std::vector<double> b, x, Tx;
+
+  /* TODO: Add any additional private data attributes and/or methods you need */
+  std::string soln_prefix;
+  int nx, ny;
+  double Th;
+
+  
+  public:
+  /* Method to setup Ax=b system */
+  int Setup(std::string inputfile);
+  
+  /* Method to solve system using CGsolver */
+  int Solve(std::string soln_prefix_);
+  
+  /* TODO: Add any additional public methods you need */
+  void SaveSolution(const std::vector<double> &sol, const int niter);
+  
+};
+
+#endif /* HEAT_HPP */

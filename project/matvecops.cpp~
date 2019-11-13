@@ -1,0 +1,114 @@
+// Import necessary modules
+#include <cmath>
+#include <iostream>
+#include <vector>
+
+#include "matvecops.hpp"
+
+/* Function to multiply a matrix in CSR format by a vector. It uses the row
+ * pointer vector to identify the bounds of the row. It then goes through each
+ * element of the value vector in that range, identifies the associated column
+ * index and thus the corresponding value of the vector, and multiplies the
+ * matrix and vector values, then adds the product to the running total for the
+ * row. At the end of the row, the total is appended to the results vector.
+ */
+std::vector<double> CSRMultiply(const std::vector<double> &val,
+				const std::vector<int>    &row_ptr,
+				const std::vector<int>    &col_idx,
+				const std::vector<double> &vec) {
+  std::vector<double> result;
+  for (unsigned int i = 0; i < vec.size(); i++) {
+    unsigned int rowStart = row_ptr[i];
+    unsigned int rowEnd = row_ptr[i+1];
+    double sum = 0;
+    for (unsigned int j = rowStart; j < rowEnd; j++) {
+      unsigned int col = col_idx[j];
+      sum = sum + (val[j] * vec[col]);
+    }
+    result.push_back(sum);
+  }
+  return result;
+}
+
+/* This function multiplies two vectors. It finds the product of each element
+ * in the first vector and the corresponding element in the second array, and
+ * adds all of them. */
+double vecMultiply(const std::vector<double>& vec1,
+		   const std::vector<double>& vec2) {
+  if (vec1.size() != vec2.size()) {
+    std::stringstream s;
+    s << __func__ << ": Vectors are not the same size";
+    throw std::runtime_error(s.str());
+  }
+  double result = 0;
+  for (unsigned int i = 0; i < vec1.size(); i++) {
+    result = result + vec1[i] * vec2[i];
+  }
+  return result;
+}
+
+/* This function multiplies each term in a vector by a given scalar */
+std::vector<double> scalarMultiply(const std::vector<double> &vec,
+				   const double x) {
+  std::vector<double> result;
+  for (unsigned int i = 0; i < vec.size(); i++) {
+    result.push_back(vec[i] * x);
+  }
+  return result;
+}
+
+/* This function subtracts each element in a vector from the equivalent element
+ * in another vector, and returns a vector with the results */
+std::vector<double> subtract(const std::vector<double> &vec1,
+			     const std::vector<double> &vec2) {
+  if (vec1.size() != vec2.size()) {
+    std::stringstream s;
+    s << __func__ << ": Vectors are not the same size";
+    throw std::runtime_error(s.str());
+  }
+  std::vector<double> result;
+  for (unsigned int i = 0; i < vec1.size(); i++) {
+    result.push_back(vec1[i] - vec2[i]);
+  }
+  return result;
+}
+
+/* This function adds each element in a vector to the equivalent element
+ * in another vector, and returns a vector with the results */
+std::vector<double> add(const std::vector<double> &vec1,
+			const std::vector<double> &vec2) {
+  if (vec1.size() != vec2.size()) {
+    std::stringstream s;
+    s << __func__ << ": Vectors are not the same size";
+    throw std::runtime_error(s.str());
+  }
+  std::vector<double> result;
+  for (unsigned int i = 0; i < vec1.size(); i++) {
+    result.push_back(vec1[i] + vec2[i]);
+  }
+  return result;
+}
+
+/* This function determines the L2 norm of a vector. It squares each element,
+ * adds the squares, and returns the square root of the sum. */
+double L2norm(const std::vector<double> &vec) {
+  double sum = 0;
+  for (unsigned int i = 0; i < vec.size(); i++) {
+    sum = sum + (vec[i] * vec[i]);
+  }
+  return sqrt(sum);
+}
+
+void printVec(const std::vector<double> &vec) {
+  for (unsigned int i = 0; i < vec.size()-1; i++) {
+    std::cout << vec[i] << ", ";
+  }
+  std::cout << vec[vec.size()-1] << std::endl;
+}
+
+void printVec(const std::vector<int> &vec) {
+  for (unsigned int i = 0; i < vec.size()-1; i++) {
+    std::cout << vec[i] << ", ";
+  }
+  std::cout << vec[vec.size()-1] << std::endl;
+}

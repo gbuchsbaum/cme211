@@ -1,0 +1,5 @@
+AAA -1
+CGA 3 7
+ATA 0
+ACG 2
+ACC 5

@@ -1,0 +1,24 @@
+#include <vector>
+
+std::vector<double> CSRMultiply(const std::vector<double> &val,
+				const std::vector<int>    &row_ptr,
+				const std::vector<int>    &col_idx,
+				const std::vector<double> &vec);
+
+double vecMultiply(const std::vector<double> &vec1,
+		   const std::vector<double> &vec2);
+
+std::vector<double> scalarMultiply(const std::vector<double> &vec,
+				   const double x);
+
+std::vector<double> subtract(const std::vector<double> &vec1,
+			     const std::vector<double> &vec2);
+
+std::vector<double> add(const std::vector<double> &vec1,
+			const std::vector<double> &vec2);
+
+double L2norm(const std::vector<double> &vec);
+
+void printVec(const std::vector<double> &vec);
+
+void printVec(const std::vector<int> &vec);
